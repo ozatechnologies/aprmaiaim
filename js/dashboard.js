@@ -1,7 +1,7 @@
 // DOM elements
 const logoutBtn = document.querySelector('#logoutBtn');
 const addRecordForm = document.querySelector('#addRecordForm');
-const generateAIMBtn = document.querySelector('#generateAIM');
+const generateAIMBtn = document.querySelector('#generateAIMBtn');
 const aimDetails = document.querySelector('#aimDetails');
 const recordsList = document.querySelector('#recordsList');
 const userName = document.getElementById('userName');
@@ -160,26 +160,33 @@ function deleteRecord(recordId) {
     }
 }
 
-// Load user profile and points history
+// Check authentication state
 window.auth.onAuthStateChanged(async (user) => {
     if (user) {
         // Load user data
-        const userRef = window.db.collection('users').doc(user.uid);
-        userRef.onSnapshot((snapshot) => {
-            const userData = snapshot.data();
+        const userRef = window.db.ref('users/' + user.uid);
+        userRef.on('value', (snapshot) => {
+            const userData = snapshot.val();
             if (userData) {
-                userName.textContent = userData.name;
-                userEmail.textContent = userData.email;
-                aimId.textContent = userData.aimId || 'Not Generated';
-                pointsBalance.textContent = (userData.points || 0) + ' Points';
+                document.getElementById('userName').textContent = userData.name;
+                document.getElementById('userEmail').textContent = userData.email;
+                document.getElementById('aimId').textContent = userData.aimId || 'Not Generated';
+                document.getElementById('hexId').textContent = userData.hexId || 'Not Generated';
+                document.getElementById('pointsBalance').textContent = (userData.points || 0) + ' Points';
+                
+                // Show/Hide Generate AIM button based on whether AIM ID exists
+                const generateBtn = document.getElementById('generateAIMBtn');
+                if (generateBtn) {
+                    generateBtn.style.display = userData.aimId ? 'none' : 'block';
+                }
             }
         });
 
         // Load points history
-        const historyRef = window.db.collection('pointsHistory').doc(user.uid);
-        historyRef.onSnapshot((snapshot) => {
-            const history = snapshot.data();
-            const tableBody = pointsHistory;
+        const historyRef = window.db.ref('pointsHistory/' + user.uid);
+        historyRef.on('value', (snapshot) => {
+            const history = snapshot.val();
+            const tableBody = document.getElementById('pointsHistory');
             tableBody.innerHTML = '';
 
             if (history) {
@@ -212,9 +219,72 @@ window.auth.onAuthStateChanged(async (user) => {
                 tableBody.appendChild(row);
             }
         });
+
+        // Generate AIM ID handler
+        const generateAIMBtn = document.getElementById('generateAIMBtn');
+        if (generateAIMBtn) {
+            generateAIMBtn.addEventListener('click', async () => {
+                try {
+                    // Generate 12-digit hexadecimal
+                    const hexId = Array.from({length: 12}, () => 
+                        Math.floor(Math.random() * 16).toString(16)
+                    ).join('').toUpperCase();
+                    
+                    // Generate AIM ID format
+                    const prefix = 'AIM';
+                    const middle = user.uid.substring(0, 5).toUpperCase();
+                    const suffix = Math.random().toString(36).substring(2, 4).toUpperCase();
+                    const aimId = `${prefix}-${middle}-${suffix}`;
+                    
+                    // Get user reference
+                    const userRef = window.db.ref('users/' + user.uid);
+                    
+                    // Update user data
+                    await userRef.update({
+                        aimId: aimId,
+                        hexId: hexId,
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+
+                    // Add to points history
+                    const historyRef = window.db.ref('pointsHistory/' + user.uid).push();
+                    await historyRef.set({
+                        type: 'credit',
+                        points: 100, // Initial points for new AIM ID
+                        description: 'Initial points for AIM ID generation',
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+
+                    // Update user points
+                    await userRef.update({
+                        points: firebase.database.ServerValue.increment(100)
+                    });
+
+                    // Hide the generate button
+                    generateAIMBtn.style.display = 'none';
+                    
+                    // Show success message
+                    alert('AIM ID and Hexadecimal ID generated successfully! You received 100 initial points.');
+                } catch (error) {
+                    console.error('Error generating AIM ID:', error);
+                    alert('Error: ' + error.message);
+                }
+            });
+        }
     } else {
         // Not logged in, redirect to login
         window.location.href = 'index.html';
+    }
+});
+
+// Logout handler
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+        await window.auth.signOut();
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Logout error:', error);
+        alert(error.message);
     }
 });
 
