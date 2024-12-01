@@ -10,33 +10,19 @@ const firebaseConfig = {
     measurementId: "G-45VZ0Q1978"
 };
 
-let auth;
-let db;
-
 // Initialize Firebase
-try {
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    
-    // Initialize Analytics
-    firebase.analytics();
-    
-    // Initialize services
-    auth = firebase.auth();
-    db = firebase.firestore();
-    
-    // Enable offline persistence
-    db.enablePersistence()
-        .catch((err) => {
-            if (err.code === 'failed-precondition') {
-                console.log('Multiple tabs open, persistence can only be enabled in one tab at a time');
-            } else if (err.code === 'unimplemented') {
-                console.log('Browser doesn\'t support persistence');
-            }
-        });
+firebase.initializeApp(firebaseConfig);
 
-    console.log('Firebase initialized successfully');
-} catch (error) {
-    console.error('Firebase initialization error:', error);
-}
+// Initialize services
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Enable persistence
+db.enablePersistence()
+    .catch((err) => {
+        if (err.code === 'failed-precondition') {
+            console.log('Multiple tabs open, persistence can only be enabled in one tab at a time');
+        } else if (err.code === 'unimplemented') {
+            console.log('Browser doesn\'t support persistence');
+        }
+    });
