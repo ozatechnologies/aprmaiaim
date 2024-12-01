@@ -15,20 +15,21 @@ if (registerForm) {
 
             // Show loading state
             const submitBtn = registerForm.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
             submitBtn.innerHTML = 'Registering...';
             submitBtn.disabled = true;
 
             // Create user
-            const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+            const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
             
             // Add user details to Firestore
-            await firebase.firestore().collection('users').doc(userCredential.user.uid).set({
+            await window.db.collection('users').doc(userCredential.user.uid).set({
                 name: name,
                 email: email,
                 role: 'user',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: new Date()
             });
+
+            console.log('User registered successfully');
 
             // Close modal and reset form
             const modal = bootstrap.Modal.getInstance(document.querySelector('#registerModal'));
@@ -60,14 +61,13 @@ if (loginForm) {
 
             // Show loading state
             const submitBtn = loginForm.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
             submitBtn.innerHTML = 'Logging in...';
             submitBtn.disabled = true;
 
-            const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+            const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
             
             // Check user role and redirect accordingly
-            const userDoc = await firebase.firestore().collection('users').doc(userCredential.user.uid).get();
+            const userDoc = await window.db.collection('users').doc(userCredential.user.uid).get();
             
             // Close modal and reset form
             const modal = bootstrap.Modal.getInstance(document.querySelector('#loginModal'));
@@ -95,7 +95,7 @@ if (loginForm) {
 if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
         try {
-            await firebase.auth().signOut();
+            await window.auth.signOut();
             window.location.href = 'index.html';
         } catch (error) {
             console.error('Logout error:', error);
@@ -105,14 +105,13 @@ if (logoutBtn) {
 }
 
 // Auth state changes
-firebase.auth().onAuthStateChanged(async (user) => {
+window.auth.onAuthStateChanged(async (user) => {
     if (user) {
-        // User is signed in
         console.log('User signed in:', user.email);
         
         // Check if on login page and redirect if necessary
         if (window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/')) {
-            const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+            const userDoc = await window.db.collection('users').doc(user.uid).get();
             if (userDoc.data().role === 'admin') {
                 window.location.href = 'admin.html';
             } else {
@@ -120,7 +119,6 @@ firebase.auth().onAuthStateChanged(async (user) => {
             }
         }
     } else {
-        // User is signed out
         console.log('User signed out');
         
         // If not on index page, redirect to login
