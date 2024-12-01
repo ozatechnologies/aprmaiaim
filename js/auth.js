@@ -19,14 +19,14 @@ if (registerForm) {
             submitBtn.disabled = true;
 
             // Create user
-            const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             
             // Add user details to Firestore
-            await window.db.collection('users').doc(userCredential.user.uid).set({
+            await db.collection('users').doc(userCredential.user.uid).set({
                 name: name,
                 email: email,
                 role: 'user',
-                createdAt: new Date()
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
             console.log('User registered successfully');
@@ -64,10 +64,10 @@ if (loginForm) {
             submitBtn.innerHTML = 'Logging in...';
             submitBtn.disabled = true;
 
-            const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
             
             // Check user role and redirect accordingly
-            const userDoc = await window.db.collection('users').doc(userCredential.user.uid).get();
+            const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
             
             // Close modal and reset form
             const modal = bootstrap.Modal.getInstance(document.querySelector('#loginModal'));
@@ -95,7 +95,7 @@ if (loginForm) {
 if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
         try {
-            await window.auth.signOut();
+            await auth.signOut();
             window.location.href = 'index.html';
         } catch (error) {
             console.error('Logout error:', error);
@@ -105,13 +105,13 @@ if (logoutBtn) {
 }
 
 // Auth state changes
-window.auth.onAuthStateChanged(async (user) => {
+auth.onAuthStateChanged(async (user) => {
     if (user) {
         console.log('User signed in:', user.email);
         
         // Check if on login page and redirect if necessary
         if (window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/')) {
-            const userDoc = await window.db.collection('users').doc(user.uid).get();
+            const userDoc = await db.collection('users').doc(user.uid).get();
             if (userDoc.data().role === 'admin') {
                 window.location.href = 'admin.html';
             } else {
