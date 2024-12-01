@@ -6,6 +6,11 @@
     <title>AIM ID - Academic and Merit Identity System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -90,16 +95,37 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- Initialize Firebase -->
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyChbFyLFkELidW7oSW0hiolmfscLaKTDzg",
+            authDomain: "aimid-6731b.firebaseapp.com",
+            databaseURL: "https://aimid-6731b-default-rtdb.firebaseio.com",
+            projectId: "aimid-6731b",
+            storageBucket: "aimid-6731b.firebasestorage.app",
+            messagingSenderId: "568462521581",
+            appId: "1:568462521581:web:d27295fc87247bae0408e4",
+            measurementId: "G-45VZ0Q1978"
+        };
+
+        // Wait for Firebase SDK to load
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+
+            // Initialize services
+            window.auth = firebase.auth();
+            window.db = firebase.database();
+
+            console.log('Firebase initialized successfully');
+        });
+    </script>
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JS -->
-    <script src="js/firebase-config.js"></script>
     <script src="js/auth.js"></script>
 </body>
 </html>
