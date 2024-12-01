@@ -8,9 +8,9 @@
     <link rel="stylesheet" href="css/style.css">
     
     <!-- Firebase App (the core Firebase SDK) -->
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -97,20 +97,19 @@
 
     <!-- Initialize Firebase -->
     <script>
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyChbFyLFkELidW7oSW0hiolmfscLaKTDzg",
-            authDomain: "aimid-6731b.firebaseapp.com",
-            databaseURL: "https://aimid-6731b-default-rtdb.firebaseio.com",
-            projectId: "aimid-6731b",
-            storageBucket: "aimid-6731b.firebasestorage.app",
-            messagingSenderId: "568462521581",
-            appId: "1:568462521581:web:d27295fc87247bae0408e4",
-            measurementId: "G-45VZ0Q1978"
-        };
+        try {
+            // Your web app's Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyChbFyLFkELidW7oSW0hiolmfscLaKTDzg",
+                authDomain: "aimid-6731b.firebaseapp.com",
+                databaseURL: "https://aimid-6731b-default-rtdb.firebaseio.com",
+                projectId: "aimid-6731b",
+                storageBucket: "aimid-6731b.firebasestorage.app",
+                messagingSenderId: "568462521581",
+                appId: "1:568462521581:web:d27295fc87247bae0408e4",
+                measurementId: "G-45VZ0Q1978"
+            };
 
-        // Wait for Firebase SDK to load
-        window.addEventListener('DOMContentLoaded', (event) => {
             // Initialize Firebase
             firebase.initializeApp(firebaseConfig);
 
@@ -119,7 +118,25 @@
             window.db = firebase.database();
 
             console.log('Firebase initialized successfully');
-        });
+            
+            // Test database connection
+            const connectedRef = window.db.ref(".info/connected");
+            connectedRef.on("value", (snap) => {
+                if (snap.val() === true) {
+                    console.log("Connected to Firebase Realtime Database");
+                } else {
+                    console.log("Not connected to Firebase Realtime Database");
+                }
+            });
+            
+            // Test authentication state
+            window.auth.onAuthStateChanged((user) => {
+                console.log("Auth state changed:", user ? "User logged in" : "User logged out");
+            });
+
+        } catch (error) {
+            console.error("Firebase initialization error:", error);
+        }
     </script>
     
     <!-- Bootstrap JS -->
